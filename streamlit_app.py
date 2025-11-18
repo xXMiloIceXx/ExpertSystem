@@ -26,9 +26,9 @@ def create_env():
 	return env
 
 
-st.title("MyAPP")
+st.title("简单专家系统示例")
 
-# st.write("这个示例会把输入作为一个 fact 断言到 CLIPS，然后运行推理并显示结果。")
+st.write("这个示例会把输入作为一个 fact 断言到 CLIPS，然后运行推理并显示结果。")
 
 name = st.text_input("Enter your name")
 
@@ -93,7 +93,7 @@ if st.button("Run inference"):
 			st.error(f"读取事实失败：{e}")
 
 		if results:
-			st.success(f"Results: {results[0]}")
+			st.success(f"结果: {results[0]}")
 		else:
 			st.info("没有找到任何结果。")
 
