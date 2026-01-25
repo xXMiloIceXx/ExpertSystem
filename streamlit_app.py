@@ -121,4 +121,4 @@ if st.button("Start Diagnosis", use_container_width=True):
 # System Reset
 # ======================================
 if st.button("Reset System"):
-    st.experimental_rerun()
+    st.rerun()
