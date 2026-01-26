@@ -78,14 +78,14 @@
    (assert (diagnosis
       (message "System appears to be operating normally."))))
 
-;;; Rule 9: CMOS Battery (New)
+;;; Rule 9: CMOS Battery 
 (defrule cmos-battery-failure
    (power-on yes)
    (time-reset yes)
    =>
    (assert (diagnosis (message "CMOS Battery is likely dead. Replace the CR2032 battery."))))
 
-;;; Rule 10: Storage Failure (New)
+;;; Rule 10: Storage Failure 
 (defrule storage-failure
    (power-on yes)
    (error-boot-device yes)
