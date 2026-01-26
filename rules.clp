@@ -78,21 +78,26 @@
    (assert (diagnosis
       (message "System appears to be operating normally."))))
 
-;;; Rule 9: CMOS Battery Failure
-;;; Frequent time resets indicate the onboard battery is dead
+;;; Rule 9: CMOS Battery (New)
 (defrule cmos-battery-failure
    (power-on yes)
    (time-reset yes)
    =>
-   (assert (diagnosis
-      (message "CMOS Battery is likely dead. Replace the CR2032 battery on the motherboard."))))
+   (assert (diagnosis (message "CMOS Battery is likely dead. Replace the CR2032 battery."))))
 
-;;; Rule 10: Hard Drive / SSD Failure
-;;; Error message specifically identifying boot issues
+;;; Rule 10: Storage Failure (New)
 (defrule storage-failure
    (power-on yes)
-   (screen-black no)
    (error-boot-device yes)
    =>
-   (assert (diagnosis
-      (message "Storage failure detected. Check HDD/SSD cables or replace the boot drive."))))
+   (assert (diagnosis (message "Storage failure detected. Check HDD/SSD cables or BIOS settings."))))
+
+;;; Rule 11: Fallback (Ensures something is always found)
+(defrule fallback-check
+   (power-on yes)
+   (screen-black no)
+   (sudden-shutdown no)
+   (time-reset no)
+   (error-boot-device no)
+   =>
+   (assert (diagnosis (message "No immediate hardware faults detected. System is stable."))))
