@@ -100,4 +100,4 @@
    (time-reset no)
    (error-boot-device no)
    =>
-   (assert (diagnosis (message "No immediate hardware faults detected. System is stable."))))
+   (assert (diagnosis (message "This case will be reviewed to improve the knowledge base."))))

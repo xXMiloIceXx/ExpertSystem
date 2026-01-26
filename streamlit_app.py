@@ -116,25 +116,25 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        found = False
-        for fact in env.facts():
-            if fact.template.name == "diagnosis":
-                st.success(f"**Recommended Action:** {fact['message']}")
-                break
-        
-        # Create a list to store all found diagnoses
-        # diagnoses = []
-        
+        # found = False
         # for fact in env.facts():
         #     if fact.template.name == "diagnosis":
-        #         diagnoses.append(fact['message'])
+        #         st.success(f"**Recommended Action:** {fact['message']}")
+        #         break
         
-        # if diagnoses:
-        #     found = True
-        #     for msg in diagnoses:
-        #         st.success(f"**Recommended Action:** {msg}")
-        # else:
-        #     found = False
+        # Create a list to store all found diagnoses
+        diagnoses = []
+        
+        for fact in env.facts():
+            if fact.template.name == "diagnosis":
+                diagnoses.append(fact['message'])
+        
+        if diagnoses:
+            found = True
+            for msg in diagnoses:
+                st.success(f"**Recommended Action:** {msg}")
+        else:
+            found = False
 
         # ======================================
         # VALIDATION & EVALUATION
