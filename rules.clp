@@ -26,7 +26,7 @@
 ;;; Beeps with no display often indicate RAM problems
 (defrule ram-issue
    (power-on yes)
-   (beeps no)
+   (beeps yes)
    (screen-black yes)
    =>
    (assert (diagnosis
