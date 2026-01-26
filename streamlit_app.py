@@ -147,7 +147,9 @@ if st.button("Start Diagnosis", use_container_width=True):
                 "Power": power,
                 "Beeps": beeps,
                 "Screen": screen,
-                "Shutdown": shutdown
+                "Shutdown": shutdown,
+                "Boot Error": boot_error, 
+                "Time Reset": time_reset
             })
 
 # ======================================

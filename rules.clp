@@ -91,13 +91,3 @@
    (error-boot-device yes)
    =>
    (assert (diagnosis (message "Storage failure detected. Check HDD/SSD cables or BIOS settings."))))
-
-;;; Rule 11: Fallback (Ensures something is always found)
-(defrule fallback-check
-   (power-on yes)
-   (screen-black no)
-   (sudden-shutdown no)
-   (time-reset no)
-   (error-boot-device no)
-   =>
-   (assert (diagnosis (message "This case will be reviewed to improve the knowledge base."))))
