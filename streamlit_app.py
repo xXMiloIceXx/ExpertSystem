@@ -79,6 +79,8 @@ if st.button("Start Diagnosis", use_container_width=True):
 
         if shutdown:
             env.assert_string("(sudden-shutdown yes)")
+        else:
+            env.assert_string("(sudden-shutdown no)")
 
         # Run inference engine
         env.run()
