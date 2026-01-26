@@ -148,7 +148,7 @@ if st.button("Start Diagnosis", use_container_width=True):
         # VALIDATION & EVALUATION
         # ======================================
         st.write("### 🔍 Validation Summary")
-        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}")
+        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}, Boot Error: {boot_error}, Time Reset: {time_reset}")
 
         if not found:
             notify_developer({
