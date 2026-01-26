@@ -69,7 +69,14 @@
    (assert (diagnosis
       (message "Possible boot device failure. Check storage and BIOS settings."))))
 
-
+;;; Rule 8: Normal Operation
+;;; System functions as expected
+(defrule normal-operation
+   (power-on yes)
+   (screen-black no)
+   =>
+   (assert (diagnosis
+      (message "System appears to be operating normally."))))
 
 ;;; Rule 9: CMOS Battery 
 (defrule cmos-battery-failure
