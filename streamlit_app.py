@@ -122,19 +122,27 @@ if st.button("Start Diagnosis", use_container_width=True):
         #         st.success(f"**Recommended Action:** {fact['message']}")
         #         break
         
-        # Create a list to store all found diagnoses
         diagnoses = []
+        found_specific_diagnosis = False # New flag
         
         for fact in env.facts():
             if fact.template.name == "diagnosis":
-                diagnoses.append(fact['message'])
+                msg = fact['message']
+                # Check if it's a real diagnosis or just the fallback message
+                if msg != "This case will be reviewed to improve the knowledge base.":
+                    found_specific_diagnosis = True
+                diagnoses.append(msg)
         
         if diagnoses:
-            found = True
             for msg in diagnoses:
-                st.success(f"**Recommended Action:** {msg}")
-        else:
-            found = False
+                # If it's the fallback, use a neutral info box instead of a success box
+                if msg == "This case will be reviewed to improve the knowledge base.":
+                    st.info(f"ℹ️ {msg}")
+                else:
+                    st.success(f"**Recommended Action:** {msg}")
+        
+        # Use our new flag to trigger the developer notification
+        found = found_specific_diagnosis
 
         # ======================================
         # VALIDATION & EVALUATION
