@@ -77,3 +77,22 @@
    =>
    (assert (diagnosis
       (message "System appears to be operating normally."))))
+
+;;; Rule 9: CMOS Battery Failure
+;;; Frequent time resets indicate the onboard battery is dead
+(defrule cmos-battery-failure
+   (power-on yes)
+   (time-reset yes)
+   =>
+   (assert (diagnosis
+      (message "CMOS Battery is likely dead. Replace the CR2032 battery on the motherboard."))))
+
+;;; Rule 10: Hard Drive / SSD Failure
+;;; Error message specifically identifying boot issues
+(defrule storage-failure
+   (power-on yes)
+   (screen-black no)
+   (error-boot-device yes)
+   =>
+   (assert (diagnosis
+      (message "Storage failure detected. Check HDD/SSD cables or replace the boot drive."))))

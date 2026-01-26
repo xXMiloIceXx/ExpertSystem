@@ -48,10 +48,16 @@ col1, col2 = st.columns(2)
 with col1:
     power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
     beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    
+    # new question added
+    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
 with col2:
     screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
     shutdown = st.checkbox("PC shuts down unexpectedly?")
+    
+    # New Question 2
+    time_reset = st.checkbox("Does the system time/date reset frequently?")
 
 # ======================================
 # Diagnosis Execution
@@ -81,6 +87,17 @@ if st.button("Start Diagnosis", use_container_width=True):
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
+
+        # new inputs
+        if boot_error:
+            env.assert_string("(error-boot-device yes)")
+        else:
+            env.assert_string("(error-boot-device no)")
+            
+        if time_reset:
+            env.assert_string("(time-reset yes)")
+        else:
+            env.assert_string("(time-reset no)")
 
         # Run inference engine
         env.run()
