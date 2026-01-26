@@ -122,27 +122,37 @@ if st.button("Start Diagnosis", use_container_width=True):
         #         st.success(f"**Recommended Action:** {fact['message']}")
         #         break
         
-        diagnoses = []
-        found_specific_diagnosis = False # New flag
+        # diagnoses = []
+        # found_specific_diagnosis = False # New flag
         
-        for fact in env.facts():
-            if fact.template.name == "diagnosis":
-                msg = fact['message']
-                # Check if it's a real diagnosis or just the fallback message
-                if msg != "This case will be reviewed to improve the knowledge base.":
-                    found_specific_diagnosis = True
-                diagnoses.append(msg)
+        # for fact in env.facts():
+        #     if fact.template.name == "diagnosis":
+        #         msg = fact['message']
+        #         # Check if it's a real diagnosis or just the fallback message
+        #         if msg != "This case will be reviewed to improve the knowledge base.":
+        #             found_specific_diagnosis = True
+        #         diagnoses.append(msg)
         
+        # if diagnoses:
+        #     for msg in diagnoses:
+        #         # If it's the fallback, use a neutral info box instead of a success box
+        #         if msg == "This case will be reviewed to improve the knowledge base.":
+        #             st.info(f"ℹ️ {msg}")
+        #         else:
+        #             st.success(f"**Recommended Action:** {msg}")
+        
+        # # Use our new flag to trigger the developer notification
+        # found = found_specific_diagnosis
+        
+        diagnoses = [f.get('message') for f in env.facts() if f.template.name == "diagnosis"] [cite: 1]
+
         if diagnoses:
-            for msg in diagnoses:
-                # If it's the fallback, use a neutral info box instead of a success box
-                if msg == "This case will be reviewed to improve the knowledge base.":
-                    st.info(f"ℹ️ {msg}")
-                else:
-                    st.success(f"**Recommended Action:** {msg}")
-        
-        # Use our new flag to trigger the developer notification
-        found = found_specific_diagnosis
+            found = True
+            st.info("The system has identified multiple possibilities. Please try these steps in order:")
+            for i, msg in enumerate(diagnoses, 1):
+                st.markdown(f"{i}️. **{msg}**") # Renders as a numbered list
+        else:
+            found = False
 
         # ======================================
         # VALIDATION & EVALUATION
