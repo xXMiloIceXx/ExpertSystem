@@ -50,6 +50,7 @@ with col1:
     beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
     
     # new question added
+    test = st.radio("Are there test?", ["Yes", "No"], index=None)
     boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
 with col2:
@@ -65,7 +66,7 @@ with col2:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    if power is None or beeps is None or screen is None:
+    if power is None or beeps is None or screen is None or test is None:
         st.warning("Please answer all questions before running the diagnosis.")
     
     elif not RULES_LOADED:
@@ -87,8 +88,15 @@ if st.button("Start Diagnosis", use_container_width=True):
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
+            
+        
 
         # new inputs
+        if test:
+            env.assert_string("(test yes)")
+        else:
+            env.assert_string("(test no)")
+
         if boot_error:
             env.assert_string("(error-boot-device yes)")
         else:
