@@ -93,9 +93,9 @@ if st.button("Start Diagnosis", use_container_width=True):
 
         # new inputs
         if test:
-            env.assert_string("(test yes)")
+            env.assert_string("(sudden-test yes)")
         else:
-            env.assert_string("(test no)")
+            env.assert_string("(sudden-test no)")
 
         if boot_error:
             env.assert_string("(error-boot-device yes)")
