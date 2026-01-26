@@ -2,7 +2,7 @@ import streamlit as st
 import clips
 
 # ======================================
-# VERIFICATION: Rule Base Loading
+# Rule Base Loading
 # ======================================
 # Ensures that the expert system knowledge base is loaded correctly
 env = clips.Environment()
@@ -15,7 +15,7 @@ except Exception as e:
     st.error(f"Verification Failed: Unable to load rules.clp\n{e}")
 
 # ======================================
-# Validation Support: Unknown Case Handler
+# Unknown Case Handler
 # ======================================
 def notify_developer(user_inputs):
     """
@@ -101,7 +101,7 @@ if st.button("Start Diagnosis", use_container_width=True):
         for fact in env.facts():
             if fact.template.name == "diagnosis":
                 st.success(f"**Recommended Action:** {fact['message']}")
-                found = True
+                break
 
         # ======================================
         # VALIDATION & EVALUATION
@@ -121,4 +121,7 @@ if st.button("Start Diagnosis", use_container_width=True):
 # System Reset
 # ======================================
 if st.button("Reset System"):
+    for key in ["power", "beeps", "screen", "shutdown"]:
+        if key in st.session_state:
+            del st.session_state[key]
     st.rerun()
