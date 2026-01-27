@@ -43,22 +43,66 @@ st.info(
 # ======================================
 st.subheader("Select Observed Symptoms")
 
-col1, col2 = st.columns(2)
+# Question 1
+st.markdown("**1. Does the PC power on?**")
+power = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="power",
+    horizontal=True
+)
 
-with col1:
-    power = st.radio("1. Does the PC power on?", ["Yes", "No"], index=None)
-    beeps = st.radio("2. Are there diagnostic beeps?", ["Yes", "No"], index=None)
-    
-    # new question added
-    test = st.radio("3. Are there test?", ["Yes", "No"], index=None)
-    boot_error = st.checkbox("4. Do you see a 'No Bootable Device' error?")
+# Question 2
+st.markdown("**2. Are there diagnostic beeps during startup?**")
+beeps = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="beeps",
+    horizontal=True
+)
 
-with col2:
-    screen = st.radio("5. Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
-    shutdown = st.checkbox("6. PC shuts down unexpectedly?")
-    
-    # New Question 2
-    time_reset = st.checkbox("7. Does the system time/date reset frequently?")
+# Question 3
+st.markdown("**3. Is there any display on the screen?**")
+screen = st.radio(
+    label="",
+    options=["Visible", "Black/Blank"],
+    index=None,
+    key="screen",
+    horizontal=True
+)
+
+# Question 4
+st.markdown("**4. Does the PC shut down unexpectedly after powering on?**")
+shutdown = st.checkbox(
+    "Yes",
+    key="shutdown"
+)
+
+# Question 5
+st.markdown("**5. Do you see a ‘No Bootable Device’ error message?**")
+boot_error = st.checkbox(
+    "Yes",
+    key="boot_error"
+)
+
+# Question 6
+st.markdown("**6. Does the system time or date reset frequently?**")
+time_reset = st.checkbox(
+    "Yes",
+    key="time_reset"
+)
+
+# Question 7
+st.markdown("**7. Are there system test failures or abnormal startup behaviour?**")
+test = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="test",
+    horizontal=True
+)
 
 # ======================================
 # Diagnosis Execution
@@ -66,7 +110,7 @@ with col2:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    if power is None or beeps is None or screen is None or test is None:
+    if power is None or beeps is None or screen is None:
         st.warning("Please answer all questions before running the diagnosis.")
     
     elif not RULES_LOADED:
@@ -88,24 +132,6 @@ if st.button("Start Diagnosis", use_container_width=True):
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
-            
-        
-
-        # new inputs
-        if test:
-            env.assert_string("(sudden-test yes)")
-        else:
-            env.assert_string("(sudden-test no)")
-
-        if boot_error:
-            env.assert_string("(error-boot-device yes)")
-        else:
-            env.assert_string("(error-boot-device no)")
-            
-        if time_reset:
-            env.assert_string("(time-reset yes)")
-        else:
-            env.assert_string("(time-reset no)")
 
         # Run inference engine
         env.run()
@@ -124,48 +150,24 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        # found = False
-        # for fact in env.facts():
-        #     if fact.template.name == "diagnosis":
-        #         st.success(f"**Recommended Action:** {fact['message']}")
-        #         break
-        
-        diagnoses = []
-        found_specific_diagnosis = False # New flag
-        
+        found = False
         for fact in env.facts():
             if fact.template.name == "diagnosis":
-                msg = fact['message']
-                # Check if it's a real diagnosis or just the fallback message
-                if msg != "This case will be reviewed to improve the knowledge base.":
-                    found_specific_diagnosis = True
-                diagnoses.append(msg)
-        
-        if diagnoses:
-            for msg in diagnoses:
-                # If it's the fallback, use a neutral info box instead of a success box
-                if msg == "This case will be reviewed to improve the knowledge base.":
-                    st.info(f"ℹ️ {msg}")
-                else:
-                    st.success(f"**Recommended Action:** {msg}")
-        
-        # Use our new flag to trigger the developer notification
-        found = found_specific_diagnosis
+                st.success(f"**Recommended Action:** {fact['message']}")
+                break
 
         # ======================================
         # VALIDATION & EVALUATION
         # ======================================
         st.write("### 🔍 Validation Summary")
-        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}, Boot Error: {boot_error}, Time Reset: {time_reset}")
+        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}")
 
         if not found:
             notify_developer({
                 "Power": power,
                 "Beeps": beeps,
                 "Screen": screen,
-                "Shutdown": shutdown,
-                "Boot Error": boot_error, 
-                "Time Reset": time_reset
+                "Shutdown": shutdown
             })
 
 # ======================================
