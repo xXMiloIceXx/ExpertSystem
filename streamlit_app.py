@@ -43,66 +43,22 @@ st.info(
 # ======================================
 st.subheader("Select Observed Symptoms")
 
-# Question 1
-st.markdown("**1. Does the PC power on?**")
-power = st.radio(
-    label="",
-    options=["Yes", "No"],
-    index=None,
-    key="power",
-    horizontal=True
-)
+col1, col2 = st.columns(2)
 
-# Question 2
-st.markdown("**2. Are there diagnostic beeps during startup?**")
-beeps = st.radio(
-    label="",
-    options=["Yes", "No"],
-    index=None,
-    key="beeps",
-    horizontal=True
-)
+with col1:
+    power = st.radio("1. Does the PC power on?", ["Yes", "No"], index=None)
+    beeps = st.radio("2. Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    
+    # new question added
+    test = st.radio("3. Are there test?", ["Yes", "No"], index=None)
+    boot_error = st.checkbox("4. Do you see a 'No Bootable Device' error?")
 
-# Question 3
-st.markdown("**3. Is there any display on the screen?**")
-screen = st.radio(
-    label="",
-    options=["Visible", "Black/Blank"],
-    index=None,
-    key="screen",
-    horizontal=True
-)
-
-# Question 4
-st.markdown("**4. Does the PC shut down unexpectedly after powering on?**")
-shutdown = st.checkbox(
-    "Yes",
-    key="shutdown"
-)
-
-# Question 5
-st.markdown("**5. Do you see a ‘No Bootable Device’ error message?**")
-boot_error = st.checkbox(
-    "Yes",
-    key="boot_error"
-)
-
-# Question 6
-st.markdown("**6. Does the system time or date reset frequently?**")
-time_reset = st.checkbox(
-    "Yes",
-    key="time_reset"
-)
-
-# Question 7
-st.markdown("**7. Are there system test failures or abnormal startup behaviour?**")
-test = st.radio(
-    label="",
-    options=["Yes", "No"],
-    index=None,
-    key="test",
-    horizontal=True
-)
+with col2:
+    screen = st.radio("5. Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
+    shutdown = st.checkbox("6. PC shuts down unexpectedly?")
+    
+    # New Question 2
+    time_reset = st.checkbox("7. Does the system time/date reset frequently?")
 
 # ======================================
 # Diagnosis Execution
