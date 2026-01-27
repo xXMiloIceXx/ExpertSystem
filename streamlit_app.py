@@ -43,22 +43,66 @@ st.info(
 # ======================================
 st.subheader("Select Observed Symptoms")
 
-col1, col2 = st.columns(2)
+# Question 1
+st.markdown("**1. Does the PC power on?**")
+power = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="power",
+    horizontal=True
+)
 
-with col1:
-    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
-    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
-    
-    # new question added
-    test = st.radio("Are there test?", ["Yes", "No"], index=None)
-    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
+# Question 2
+st.markdown("**2. Are there diagnostic beeps during startup?**")
+beeps = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="beeps",
+    horizontal=True
+)
 
-with col2:
-    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
-    shutdown = st.checkbox("PC shuts down unexpectedly?")
-    
-    # New Question 2
-    time_reset = st.checkbox("Does the system time/date reset frequently?")
+# Question 3
+st.markdown("**3. Is there any display on the screen?**")
+screen = st.radio(
+    label="",
+    options=["Visible", "Black/Blank"],
+    index=None,
+    key="screen",
+    horizontal=True
+)
+
+# Question 4
+st.markdown("**4. Does the PC shut down unexpectedly after powering on?**")
+shutdown = st.checkbox(
+    "Yes",
+    key="shutdown"
+)
+
+# Question 5
+st.markdown("**5. Do you see a ‘No Bootable Device’ error message?**")
+boot_error = st.checkbox(
+    "Yes",
+    key="boot_error"
+)
+
+# Question 6
+st.markdown("**6. Does the system time or date reset frequently?**")
+time_reset = st.checkbox(
+    "Yes",
+    key="time_reset"
+)
+
+# Question 7
+st.markdown("**7. Are there system test failures or abnormal startup behaviour?**")
+test = st.radio(
+    label="",
+    options=["Yes", "No"],
+    index=None,
+    key="test",
+    horizontal=True
+)
 
 # ======================================
 # Diagnosis Execution
@@ -124,22 +168,22 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        found = False
-        for fact in env.facts():
-            if fact.template.name == "diagnosis":
-                st.success(f"**Recommended Action:** {fact['message']}")
-                break
+        # found = False
+        # for fact in env.facts():
+        #     if fact.template.name == "diagnosis":
+        #         st.success(f"**Recommended Action:** {fact['message']}")
+        #         break
         
         diagnoses = []
         found_specific_diagnosis = False # New flag
         
-        # for fact in env.facts():
-        #     if fact.template.name == "diagnosis":
-        #         msg = fact['message']
-        #         # Check if it's a real diagnosis or just the fallback message
-        #         if msg != "This case will be reviewed to improve the knowledge base.":
-        #             found_specific_diagnosis = True
-        #         diagnoses.append(msg)
+        for fact in env.facts():
+            if fact.template.name == "diagnosis":
+                msg = fact['message']
+                # Check if it's a real diagnosis or just the fallback message
+                if msg != "This case will be reviewed to improve the knowledge base.":
+                    found_specific_diagnosis = True
+                diagnoses.append(msg)
         
         if diagnoses:
             for msg in diagnoses:
