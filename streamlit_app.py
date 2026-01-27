@@ -48,10 +48,17 @@ col1, col2 = st.columns(2)
 with col1:
     power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
     beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    
+    # new question added
+    test = st.radio("Are there test?", ["Yes", "No"], index=None)
+    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
 with col2:
     screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
     shutdown = st.checkbox("PC shuts down unexpectedly?")
+    
+    # New Question 2
+    time_reset = st.checkbox("Does the system time/date reset frequently?")
 
 # ======================================
 # Diagnosis Execution
@@ -59,7 +66,7 @@ with col2:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    if power is None or beeps is None or screen is None:
+    if power is None or beeps is None or screen is None or test is None:
         st.warning("Please answer all questions before running the diagnosis.")
     
     elif not RULES_LOADED:
@@ -81,6 +88,24 @@ if st.button("Start Diagnosis", use_container_width=True):
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
+            
+        
+
+        # new inputs
+        if test:
+            env.assert_string("(sudden-test yes)")
+        else:
+            env.assert_string("(sudden-test no)")
+
+        if boot_error:
+            env.assert_string("(error-boot-device yes)")
+        else:
+            env.assert_string("(error-boot-device no)")
+            
+        if time_reset:
+            env.assert_string("(time-reset yes)")
+        else:
+            env.assert_string("(time-reset no)")
 
         # Run inference engine
         env.run()
@@ -99,24 +124,48 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        found = False
+        # found = False
+        # for fact in env.facts():
+        #     if fact.template.name == "diagnosis":
+        #         st.success(f"**Recommended Action:** {fact['message']}")
+        #         break
+        
+        diagnoses = []
+        found_specific_diagnosis = False # New flag
+        
         for fact in env.facts():
             if fact.template.name == "diagnosis":
-                st.success(f"**Recommended Action:** {fact['message']}")
-                break
+                msg = fact['message']
+                # Check if it's a real diagnosis or just the fallback message
+                if msg != "This case will be reviewed to improve the knowledge base.":
+                    found_specific_diagnosis = True
+                diagnoses.append(msg)
+        
+        if diagnoses:
+            for msg in diagnoses:
+                # If it's the fallback, use a neutral info box instead of a success box
+                if msg == "This case will be reviewed to improve the knowledge base.":
+                    st.info(f"ℹ️ {msg}")
+                else:
+                    st.success(f"**Recommended Action:** {msg}")
+        
+        # Use our new flag to trigger the developer notification
+        found = found_specific_diagnosis
 
         # ======================================
         # VALIDATION & EVALUATION
         # ======================================
         st.write("### 🔍 Validation Summary")
-        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}")
+        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}, Boot Error: {boot_error}, Time Reset: {time_reset}")
 
         if not found:
             notify_developer({
                 "Power": power,
                 "Beeps": beeps,
                 "Screen": screen,
-                "Shutdown": shutdown
+                "Shutdown": shutdown,
+                "Boot Error": boot_error, 
+                "Time Reset": time_reset
             })
 
 # ======================================
