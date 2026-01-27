@@ -124,22 +124,22 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        # found = False
-        # for fact in env.facts():
-        #     if fact.template.name == "diagnosis":
-        #         st.success(f"**Recommended Action:** {fact['message']}")
-        #         break
+        found = False
+        for fact in env.facts():
+            if fact.template.name == "diagnosis":
+                st.success(f"**Recommended Action:** {fact['message']}")
+                break
         
         diagnoses = []
         found_specific_diagnosis = False # New flag
         
-        for fact in env.facts():
-            if fact.template.name == "diagnosis":
-                msg = fact['message']
-                # Check if it's a real diagnosis or just the fallback message
-                if msg != "This case will be reviewed to improve the knowledge base.":
-                    found_specific_diagnosis = True
-                diagnoses.append(msg)
+        # for fact in env.facts():
+        #     if fact.template.name == "diagnosis":
+        #         msg = fact['message']
+        #         # Check if it's a real diagnosis or just the fallback message
+        #         if msg != "This case will be reviewed to improve the knowledge base.":
+        #             found_specific_diagnosis = True
+        #         diagnoses.append(msg)
         
         if diagnoses:
             for msg in diagnoses:
