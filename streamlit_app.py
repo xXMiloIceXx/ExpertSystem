@@ -174,7 +174,10 @@ if st.button("Start Diagnosis", use_container_width=True):
 # System Reset
 # ======================================
 if st.button("Reset System"):
-    for key in ["power", "beeps", "screen", "shutdown"]:
+    for key in [
+        "power", "beeps", "screen", "shutdown",
+        "boot_error", "time_reset", "test"
+    ]:
         if key in st.session_state:
             del st.session_state[key]
     st.rerun()
