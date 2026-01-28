@@ -39,65 +39,26 @@ st.info(
 )
 
 # ======================================
-# Page State Management
+# Symptom Input Section
 # ======================================
-if 'page' not in st.session_state:
-    st.session_state.page = 1
-if 'answers' not in st.session_state:
-    st.session_state.answers = {}
+st.subheader("Select Observed Symptoms")
 
-def next_page():
-    st.session_state.page += 1
+col1, col2 = st.columns(2)
 
-def restart():
-    st.session_state.page = 1
-    st.session_state.answers = {}
+with col1:
+    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
+    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    
+    # new question added
+    test = st.radio("Are there test?", ["Yes", "No"], index=None)
+    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
-# ======================================
-# Multi-Page Question Flow
-# ======================================
-st.subheader(f"Step {st.session_state.page} of 7")
-
-if st.session_state.page == 1:
-    q1 = st.radio("1. Does the PC power on?", ["Yes", "No"], index=None)
-    if q1:
-        st.session_state.answers['power'] = q1
-        st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 2:
-    q2 = st.radio("2. Are there diagnostic beeps?", ["Yes", "No"], index=None)
-    if q2:
-        st.session_state.answers['beeps'] = q2
-        st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 3:
-    q3 = st.radio("3. Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
-    if q3:
-        st.session_state.answers['screen'] = q3
-        st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 4:
-    q4 = st.checkbox("4. PC shuts down unexpectedly?")
-    st.session_state.answers['shutdown'] = q4
-    st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 5:
-    q5 = st.checkbox("5. Do you see a 'No Bootable Device' error?")
-    st.session_state.answers['boot_error'] = q5
-    st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 6:
-    q6 = st.checkbox("6. Does the system time/date reset frequently?")
-    st.session_state.answers['time_reset'] = q6
-    st.button("Next", on_click=next_page)
-
-elif st.session_state.page == 7:
-    q7 = st.radio("7. Are there test?", ["Yes", "No"], index=None)
-    if q7:
-        st.session_state.answers['test'] = q7
-        # Final Step: Show the Start Diagnosis button
-        st.markdown("---")
-        st.success("All symptoms recorded. Ready to diagnose.")
+with col2:
+    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
+    shutdown = st.checkbox("PC shuts down unexpectedly?")
+    
+    # New Question 2
+    time_reset = st.checkbox("Does the system time/date reset frequently?")
 
 # ======================================
 # Diagnosis Execution
@@ -105,8 +66,8 @@ elif st.session_state.page == 7:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    if q1 is None or q2 is None or q3 is None:
-        st.warning("Please answer all yes/no questions before running the diagnosis.")
+    if power is None or beeps is None or screen is None or test is None:
+        st.warning("Please answer all questions before running the diagnosis.")
     
     elif not RULES_LOADED:
         st.error("System error: Rule base not loaded.")
@@ -115,31 +76,33 @@ if st.button("Start Diagnosis", use_container_width=True):
         env.reset()
 
         # Assert user inputs as facts (Forward Chaining)
-        env.assert_string(f"(power-on {q1.lower()})")
-        env.assert_string(f"(beeps {q2.lower()})")
+        env.assert_string(f"(power-on {power.lower()})")
+        env.assert_string(f"(beeps {beeps.lower()})")
 
-        if q3 == "Black/Blank":
+        if screen == "Black/Blank":
             env.assert_string("(screen-black yes)")
         else:
             env.assert_string("(screen-black no)")
 
-        if q4:
+        if shutdown:
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
             
+        
+
         # new inputs
-        if q5:
+        if test:
             env.assert_string("(sudden-test yes)")
         else:
             env.assert_string("(sudden-test no)")
 
-        if q6:
+        if boot_error:
             env.assert_string("(error-boot-device yes)")
         else:
             env.assert_string("(error-boot-device no)")
             
-        if q7:
+        if time_reset:
             env.assert_string("(time-reset yes)")
         else:
             env.assert_string("(time-reset no)")
@@ -201,7 +164,7 @@ if st.button("Start Diagnosis", use_container_width=True):
                 "Beeps": beeps,
                 "Screen": screen,
                 "Shutdown": shutdown,
-                "Boot Error": boot_error,
+                "Boot Error": boot_error, 
                 "Time Reset": time_reset
             })
 
