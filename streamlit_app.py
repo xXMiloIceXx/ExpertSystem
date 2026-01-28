@@ -74,19 +74,20 @@ if st.button("Start Diagnosis", use_container_width=True):
         env.reset()
 
         # Assert facts based on checkboxes to match rules.clp
-        # Rule 1-10 depend on these specific fact names and 'yes/no' values
-        env.assert_string(f"(power-on {'yes' if power else 'no'})") [cite: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        env.assert_string(f"(beeps {'yes' if beeps else 'no'})") [cite: 3, 4, 5]
+        # We convert True/False to 'yes/no' strings for CLIPS [cite: 1, 2]
+        env.assert_string(f"(power-on {'yes' if power else 'no'})")
+        env.assert_string(f"(beeps {'yes' if beeps else 'no'})")
         
-        # Mapping the 'screen' checkbox to the 'screen-black' fact used in rules
+        # In your rules, 'screen-black yes' means there is NO display [cite: 4, 5, 6]
+        # So if 'screen' is Checked (True), screen-black is 'no'
         if screen:
-            env.assert_string("(screen-black no)") [cite: 9]
+            env.assert_string("(screen-black no)")
         else:
-            env.assert_string("(screen-black yes)") [cite: 4, 5, 6, 8]
+            env.assert_string("(screen-black yes)")
 
-        env.assert_string(f"(sudden-shutdown {'yes' if shutdown else 'no'})") [cite: 7]
-        env.assert_string(f"(error-boot-device {'yes' if boot_error else 'no'})") [cite: 11]
-        env.assert_string(f"(time-reset {'yes' if time_reset else 'no'})") [cite: 10]
+        env.assert_string(f"(sudden-shutdown {'yes' if shutdown else 'no'})")
+        env.assert_string(f"(error-boot-device {'yes' if boot_error else 'no'})")
+        env.assert_string(f"(time-reset {'yes' if time_reset else 'no'})")
 
         # Run inference engine
         env.run()
