@@ -66,11 +66,9 @@ with col2:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    symptoms_selected = [power, beeps, boot_error, screen, shutdown, time_reset]
+    if power is None or beeps is None or screen is None:
+        st.warning("Please answer all yes/no questions before running the diagnosis.")
     
-    if not any(symptoms_selected):
-        st.warning("⚠️ Please select at least one symptom to proceed.")
-        
     elif not RULES_LOADED:
         st.error("System error: Rule base not loaded.")
 
