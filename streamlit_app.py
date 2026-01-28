@@ -89,8 +89,6 @@ if st.button("Start Diagnosis", use_container_width=True):
         else:
             env.assert_string("(sudden-shutdown no)")
             
-        
-
         # new inputs
         if test:
             env.assert_string("(sudden-test yes)")
@@ -164,7 +162,7 @@ if st.button("Start Diagnosis", use_container_width=True):
                 "Beeps": beeps,
                 "Screen": screen,
                 "Shutdown": shutdown,
-                "Boot Error": boot_error, 
+                "Boot Error": boot_error,
                 "Time Reset": time_reset
             })
 
