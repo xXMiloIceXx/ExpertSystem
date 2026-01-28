@@ -170,7 +170,7 @@ elif st.session_state.step == 7:
             # Display what was sent to the engine
             st.write(f"Inputs → Power: {ans.get('power')}, Beeps: {ans.get('beeps')}, "
                      f"Screen: {ans.get('screen')}, Shutdown: {ans.get('shutdown')},  "
-                     f"Time Reset: {ans.get('time_reset')},Boot Error: {ans.get('boot_error')}, Test: {ans.get('test')}")
+                     f"Time Reset: {ans.get('time_reset')}, Boot Error: {ans.get('boot_error')}, Test: {ans.get('test')}")
 
             if not found:
                 # This now works because 'found' is defined above as False or True
