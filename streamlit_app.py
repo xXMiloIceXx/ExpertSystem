@@ -1,4 +1,3 @@
-from posthog import screen
 import streamlit as st
 import clips
 
