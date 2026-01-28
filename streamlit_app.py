@@ -46,15 +46,15 @@ st.subheader("Select Observed Symptoms")
 col1, col2 = st.columns(2)
 
 with col1:
-    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
-    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    power = st.checkbox("Does the PC power on?")
+    beeps = st.checkbox("Are there diagnostic beeps?")
     
     # new question added
-    test = st.radio("Are there test?", ["Yes", "No"], index=None)
+    test = st.checkbox("Are there test?")
     boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
 with col2:
-    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
+    screen = st.checkbox("Is there any display on the screen?")
     shutdown = st.checkbox("PC shuts down unexpectedly?")
     
     # New Question 2
@@ -65,47 +65,29 @@ with col2:
 # ======================================
 if st.button("Start Diagnosis", use_container_width=True):
 
-    # Input completeness validation
-    if power is None or beeps is None or screen is None or test is None:
-        st.warning("Please answer all questions before running the diagnosis.")
+    # Validation: Check if at least one checkbox is selected
+    symptoms_selected = [power, beeps, test, boot_error, screen, shutdown, time_reset]
     
+    # Input completeness validation
+    if not any(symptoms_selected):
+        st.warning("⚠️ Please select at least one symptom to proceed with the diagnosis.")
+        
     elif not RULES_LOADED:
         st.error("System error: Rule base not loaded.")
 
     else:
         env.reset()
 
-        # Assert user inputs as facts (Forward Chaining)
-        env.assert_string(f"(power-on {power.lower()})")
-        env.assert_string(f"(beeps {beeps.lower()})")
+        # Assert facts based on checkbox states (Forward Chaining)
+        env.assert_string(f"(power-on {'yes' if power else 'no'})")
+        env.assert_string(f"(beeps {'yes' if beeps else 'no'})")
+        env.assert_string(f"(test {'yes' if test else 'no'})")
+        env.assert_string(f"(screen-black {'no' if screen else 'yes'})")
+        env.assert_string(f"(sudden-shutdown {'yes' if shutdown else 'no'})")
+        env.assert_string(f"(error-boot-device {'yes' if boot_error else 'no'})")
+        env.assert_string(f"(time-reset {'yes' if time_reset else 'no'})")
 
-        if screen == "Black/Blank":
-            env.assert_string("(screen-black yes)")
-        else:
-            env.assert_string("(screen-black no)")
-
-        if shutdown:
-            env.assert_string("(sudden-shutdown yes)")
-        else:
-            env.assert_string("(sudden-shutdown no)")
-            
-        
-
-        # new inputs
-        if test:
-            env.assert_string("(sudden-test yes)")
-        else:
-            env.assert_string("(sudden-test no)")
-
-        if boot_error:
-            env.assert_string("(error-boot-device yes)")
-        else:
-            env.assert_string("(error-boot-device no)")
-            
-        if time_reset:
-            env.assert_string("(time-reset yes)")
-        else:
-            env.assert_string("(time-reset no)")
+        env.run()
 
         # Run inference engine
         env.run()
