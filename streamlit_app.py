@@ -73,44 +73,20 @@ if st.button("Start Diagnosis", use_container_width=True):
     else:
         env.reset()
 
-        # Assert user inputs as facts (Forward Chaining)
-        if power == "Black/Blank":
-            env.assert_string("(screen-black yes)")
-        else:
-            env.assert_string("(screen-black no)")
-            
-        if beeps == "Black/Blank":
-            env.assert_string("(screen-black yes)")
-        else:
-            env.assert_string("(screen-black no)")
-
-        if screen == "Black/Blank":
-            env.assert_string("(screen-black yes)")
-        else:
-            env.assert_string("(screen-black no)")
-
-        if shutdown:
-            env.assert_string("(sudden-shutdown yes)")
-        else:
-            env.assert_string("(sudden-shutdown no)")
-            
+        # Assert facts based on checkboxes to match rules.clp
+        # Rule 1-10 depend on these specific fact names and 'yes/no' values
+        env.assert_string(f"(power-on {'yes' if power else 'no'})") [cite: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        env.assert_string(f"(beeps {'yes' if beeps else 'no'})") [cite: 3, 4, 5]
         
+        # Mapping the 'screen' checkbox to the 'screen-black' fact used in rules
+        if screen:
+            env.assert_string("(screen-black no)") [cite: 9]
+        else:
+            env.assert_string("(screen-black yes)") [cite: 4, 5, 6, 8]
 
-        # new inputs
-        if test:
-            env.assert_string("(sudden-test yes)")
-        else:
-            env.assert_string("(sudden-test no)")
-
-        if boot_error:
-            env.assert_string("(error-boot-device yes)")
-        else:
-            env.assert_string("(error-boot-device no)")
-            
-        if time_reset:
-            env.assert_string("(time-reset yes)")
-        else:
-            env.assert_string("(time-reset no)")
+        env.assert_string(f"(sudden-shutdown {'yes' if shutdown else 'no'})") [cite: 7]
+        env.assert_string(f"(error-boot-device {'yes' if boot_error else 'no'})") [cite: 11]
+        env.assert_string(f"(time-reset {'yes' if time_reset else 'no'})") [cite: 10]
 
         # Run inference engine
         env.run()
