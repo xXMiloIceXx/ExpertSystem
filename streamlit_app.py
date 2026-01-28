@@ -1,3 +1,4 @@
+from posthog import screen
 import streamlit as st
 import clips
 
@@ -105,7 +106,7 @@ elif st.session_state.page == 7:
 if st.button("Start Diagnosis", use_container_width=True):
 
     # Input completeness validation
-    if power is None or beeps is None or screen is None:
+    if q1 is None or q2 is None or q3 is None:
         st.warning("Please answer all yes/no questions before running the diagnosis.")
     
     elif not RULES_LOADED:
@@ -115,31 +116,31 @@ if st.button("Start Diagnosis", use_container_width=True):
         env.reset()
 
         # Assert user inputs as facts (Forward Chaining)
-        env.assert_string(f"(power-on {power.lower()})")
-        env.assert_string(f"(beeps {beeps.lower()})")
+        env.assert_string(f"(power-on {q1.lower()})")
+        env.assert_string(f"(beeps {q2.lower()})")
 
-        if screen == "Black/Blank":
+        if q3 == "Black/Blank":
             env.assert_string("(screen-black yes)")
         else:
             env.assert_string("(screen-black no)")
 
-        if shutdown:
+        if q4:
             env.assert_string("(sudden-shutdown yes)")
         else:
             env.assert_string("(sudden-shutdown no)")
             
         # new inputs
-        if test:
+        if q5:
             env.assert_string("(sudden-test yes)")
         else:
             env.assert_string("(sudden-test no)")
 
-        if boot_error:
+        if q6:
             env.assert_string("(error-boot-device yes)")
         else:
             env.assert_string("(error-boot-device no)")
             
-        if time_reset:
+        if q7:
             env.assert_string("(time-reset yes)")
         else:
             env.assert_string("(time-reset no)")
