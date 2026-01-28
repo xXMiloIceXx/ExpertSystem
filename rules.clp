@@ -20,9 +20,41 @@
 ;; =========================================================
 
 ;; ---------------------------------------------------------
-;; Category: Hard Disk and Audio Faults
+;; Category: Audio System Faults (Source A: Modern Literature)
 ;; ---------------------------------------------------------
 
+;; Rule A1: Missing Audio Driver (Modern)
+(defrule missing-audio-driver
+   (symptom (name volume-bar-moving) (value yes) (cf ?cf1))
+   (symptom (name sound-output) (value none) (cf ?cf2))
+   =>
+   (assert (diagnosis
+      (fault "Missing/Corrupt Audio Driver")
+      (solution "Reinstall or update audio drivers from manufacturer.")
+      (category "Audio")
+      (cf (* (min ?cf1 ?cf2) 0.9)))))
+
+;; Rule A2: Faulty Speaker Hardware
+(defrule faulty-speaker
+   (symptom (name sound-quality) (value distorted) (cf ?cf1))
+   =>
+   (assert (diagnosis
+      (fault "Faulty Speaker Hardware")
+      (solution "Replace speakers or check speaker connections.")
+      (category "Audio")
+      (cf (* ?cf1 0.95)))))
+
+;; Rule A3: External Interference
+(defrule audio-interference
+   (symptom (name volume-fluctuates) (value randomly) (cf ?cf1))
+   =>
+   (assert (diagnosis
+      (fault "External Audio Interference")
+      (solution "Check for electromagnetic interference sources, use shielded cables.")
+      (category "Audio")
+      (cf (* ?cf1 0.7)))))
+
+;; Rule B1: Legacy Audio Card Detection
 (defrule audio-card-failure
    ;; IF sound card cannot be detected
    (symptom (name sound-card-status) (value not-detected) (cf ?cf1))
@@ -32,7 +64,7 @@
       (fault "Sound Card Damaged or Not Installed") 
       (solution "Replace the Sound Card.") 
       (category "Audio")
-      (cf (* ?cf1 0.95))))) ;; High certainty in rule
+      (cf (* ?cf1 1.0))))) ;; High certainty in detection failure
 
 (defrule hdd-smart-warning
    ;; IF SMART warning is displayed
@@ -57,7 +89,47 @@
       (cf (* ?cf1 0.85)))))
 
 ;; ---------------------------------------------------------
-;; Category: System Startup and Power Issues
+;; Category: Storage Faults (Source A: Modern Literature)
+;; ---------------------------------------------------------
+
+;; Rule A7: HDD Wear Pattern
+(defrule hdd-wear-pattern
+   (symptom (name random-reboots) (value yes) (cf ?cf1))
+   (symptom (name device-age) (value old) (cf ?cf2))
+   =>
+   (assert (diagnosis
+      (fault "Storage Device Wear")
+      (solution "Replace aging storage device, backup data immediately.")
+      (category "Storage")
+      (cf (* (min ?cf1 ?cf2) 0.6)))))
+
+;; Rule B5: Critical Drive Failure
+(defrule critical-drive-failure
+   (symptom (name boot-message) (value disk-boot-failure) (cf ?cf1))
+   =>
+   (assert (diagnosis
+      (fault "Critical Drive Failure")
+      (solution "Check drive connections, run disk diagnostics, replace if needed.")
+      (category "Storage")
+      (cf (* ?cf1 1.0)))))
+
+;; ---------------------------------------------------------
+;; Category: Power System (Source A6: PSU Aging)
+;; ---------------------------------------------------------
+
+;; Rule A6: PSU Instability from Aging
+(defrule psu-aging-instability
+   (symptom (name random-shutdowns) (value yes) (cf ?cf1))
+   (symptom (name system-age) (value over-3-years) (cf ?cf2))
+   =>
+   (assert (diagnosis
+      (fault "PSU Instability/Wear")
+      (solution "Test PSU with multimeter, consider replacement if over 3 years old.")
+      (category "Power")
+      (cf (* (min ?cf1 ?cf2) 0.6)))))
+
+;; ---------------------------------------------------------
+;; Category: System Startup and Power Issues (Legacy)
 ;; ---------------------------------------------------------
 
 (defrule dead-system
@@ -83,15 +155,40 @@
       (category "Startup")
       (cf (* (min ?cf1 ?cf2 ?cf3) 0.9)))))
 
+;; ---------------------------------------------------------
+;; Category: Thermal & CPU Management (Hybrid Rules)
+;; ---------------------------------------------------------
+
+;; Rule A4: Temperature Threshold (Modern)
+(defrule cpu-temperature-threshold
+   (symptom (name cpu-temp) (value high) (cf ?cf1))
+   =>
+   (assert (diagnosis
+      (fault "CPU Overheating")
+      (solution "Clean vents, check fans, apply thermal paste, use cooling pad.")
+      (category "Thermal")
+      (cf (* ?cf1 1.0)))))
+
+;; Rule A5: Imminent Overheating Pattern
+(defrule imminent-overheating
+   (symptom (name temp-pattern) (value rising-rapidly) (cf ?cf1))
+   =>
+   (assert (diagnosis
+      (fault "Imminent Overheating Detected")
+      (solution "Reduce workload immediately, clean system, check cooling.")
+      (category "Thermal")
+      (cf (* ?cf1 0.8)))))
+
+;; Rule B2: Legacy Boot Warning
 (defrule cpu-overheat-boot
    ;; IF CPU overheat warning at boot
    (symptom (name boot-warning) (value cpu-overheat) (cf ?cf1))
    =>
    (assert (diagnosis 
-      (fault "CPU Overheating") 
+      (fault "Fan/Heatsink Failure") 
       (solution "Check CPU fan/heatsink and apply new thermal paste.") 
       (category "Cooling")
-      (cf (* ?cf1 0.95)))))
+      (cf (* ?cf1 1.0)))))
 
 (defrule power-light-no-fan
    ;; IF power light on BUT fans not running
@@ -105,7 +202,38 @@
       (cf (* (min ?cf1 ?cf2) 0.85)))))
 
 ;; ---------------------------------------------------------
-;; Category: Monitor and Display Damage
+;; Category: Display Faults (Consensus Rule AB1)
+;; ---------------------------------------------------------
+
+(defrule monitor-lcd-consensus-damage
+   (declare (salience 15)) ;; Higher than other display rules
+   (symptom (name power-status) (value on) (cf ?cf1))
+   (symptom (name screen-artifacts) (value lines-blocks) (cf ?cf2))
+   (symptom (name artifact-timing) (value at-boot) (cf ?cf3))
+   =>
+   (assert (diagnosis
+      (fault "Monitor/LCD Physical Damage (Consensus Rule AB1)")
+      (solution "LCD panel replacement required - hardware damage confirmed.")
+      (category "Display")
+      (cf (* (min ?cf1 ?cf2 ?cf3) 0.95)))))
+
+;; ---------------------------------------------------------
+;; Category: Safety Protocol (Immediate Override)
+;; ---------------------------------------------------------
+
+(defrule electrical-emergency
+   (declare (salience 100)) ;; Highest priority
+   (symptom (name smoke-burning) (value detected) (cf ?cf1))
+   (test (> ?cf1 0.5)) ;; Only if user is reasonably sure
+   =>
+   (assert (diagnosis
+      (fault "EMERGENCY: Severe Electrical Short")
+      (solution "UNPLUG IMMEDIATELY! Do not use until professionally inspected.")
+      (category "Emergency")
+      (cf 1.0))))
+
+;; ---------------------------------------------------------
+;; Category: Monitor and Display Damage (Legacy)
 ;; Specificity Note: This rule has 4 conditions, making it 
 ;; more specific than general display rules.
 ;; ---------------------------------------------------------
