@@ -338,12 +338,12 @@ elif st.session_state.step == 10:
             # External Link Button
             # ======================================
             st.markdown("---")
-            st.subheader("📚 Additional Resources")
+            st.subheader("📚 Feedback")
             
             # You can change this URL to any link you want
-            external_url = "https://www.techsupportguru.com/hardware-troubleshooting"
+            external_url = "https://www.google.com/forms/"
             
-            if st.button("🔗 View Hardware Troubleshooting Guide", use_container_width=True):
+            if st.button("🔗 Google Form Submission", use_container_width=True):
                 st.markdown(f'<meta http-equiv="refresh" content="0; url={external_url}">', unsafe_allow_html=True)
                 st.success("Redirecting to external troubleshooting resources...")
                 
