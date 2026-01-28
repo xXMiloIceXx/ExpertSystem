@@ -341,7 +341,7 @@ elif st.session_state.step == 10:
             st.subheader("📚 Feedback")
             
             # You can change this URL to any link you want
-            external_url = "https://www.google.com/"
+            external_url = "https://docs.google.com/forms/d/e/1FAIpQLScGm5kkIxK88AZM_ElaVZDwIUqQgCG_kP7ficPKa9H3T6QAgQ/viewform?usp=publish-editor"
             
             # Alternative approach using link
             st.markdown(f"[🌐 **Google Form Submission**]({external_url})", unsafe_allow_html=True)
