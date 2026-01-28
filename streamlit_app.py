@@ -341,14 +341,14 @@ elif st.session_state.step == 10:
             st.subheader("📚 Feedback")
             
             # You can change this URL to any link you want
-            external_url = "https://www.google.com/forms/"
+            external_url = "https://www.google.com/"
             
             if st.button("🔗 Google Form Submission", use_container_width=True):
                 st.markdown(f'<meta http-equiv="refresh" content="0; url={external_url}">', unsafe_allow_html=True)
-                st.success("Redirecting to external troubleshooting resources...")
+                st.success("Redirecting to feedback form...")
                 
             # Alternative approach using link
-            st.markdown(f"[🌐 **Hardware Troubleshooting Guide**]({external_url})", unsafe_allow_html=True)
+            st.markdown(f"[🌐 **Google Form Submission**]({external_url})", unsafe_allow_html=True)
 
 # ======================================
 # System Reset
