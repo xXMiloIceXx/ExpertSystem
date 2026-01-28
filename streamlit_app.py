@@ -39,76 +39,121 @@ st.info(
 )
 
 # ======================================
-# Symptom Input Section
+# Session State for Wizard Navigation
 # ======================================
-st.subheader("Select Observed Symptoms")
+if 'step' not in st.session_state:
+    st.session_state.step = 1
+if 'answers' not in st.session_state:
+    st.session_state.answers = {}
 
-col1, col2 = st.columns(2)
+def next_step():
+    st.session_state.step += 1
 
-with col1:
-    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
-    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
-    
-    # new question added
-    test = st.radio("Are there test?", ["Yes", "No"], index=None)
-    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
+def prev_step():
+    st.session_state.step -= 1
 
-with col2:
-    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
-    shutdown = st.checkbox("PC shuts down unexpectedly?")
-    
-    # New Question 2
-    time_reset = st.checkbox("Does the system time/date reset frequently?")
+def restart():
+    st.session_state.step = 1
+    st.session_state.answers = {}
 
 # ======================================
-# Diagnosis Execution
+# Question Pages
 # ======================================
-if st.button("Start Diagnosis", use_container_width=True):
+st.write(f"### Step {st.session_state.step} of 7")
+progress = st.progress(st.session_state.step / 7)
 
-    # Input completeness validation
-    if power is None or beeps is None or screen is None or test is None:
-        st.warning("Please answer all questions before running the diagnosis.")
-    
-    elif not RULES_LOADED:
-        st.error("System error: Rule base not loaded.")
+# Question 1: Power
+if st.session_state.step == 1:
+    q1 = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
+    if q1:
+        st.session_state.answers['power'] = q1
+        st.button("Next ➡️", on_click=next_step)
 
-    else:
+# Question 2: Beeps
+elif st.session_state.step == 2:
+    q2 = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    if q2:
+        st.session_state.answers['beeps'] = q2
+        col1, col2 = st.columns(2)
+        col1.button("⬅️ Back", on_click=prev_step)
+        col2.button("Next ➡️", on_click=next_step)
+
+# Question 3: Screen
+elif st.session_state.step == 3:
+    q3 = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
+    if q3:
+        st.session_state.answers['screen'] = q3
+        col1, col2 = st.columns(2)
+        col1.button("⬅️ Back", on_click=prev_step)
+        col2.button("Next ➡️", on_click=next_step)
+
+# Question 4: Shutdown (Checkbox converted to Yes/No for clarity)
+elif st.session_state.step == 4:
+    q4 = st.radio("Does the PC shut down unexpectedly?", ["Yes", "No"], index=None)
+    if q4:
+        st.session_state.answers['shutdown'] = (q4 == "Yes")
+        col1, col2 = st.columns(2)
+        col1.button("⬅️ Back", on_click=prev_step)
+        col2.button("Next ➡️", on_click=next_step)
+
+# Question 5: Boot Error
+elif st.session_state.step == 5:
+    q5 = st.radio("Do you see a 'No Bootable Device' error?", ["Yes", "No"], index=None)
+    if q5:
+        st.session_state.answers['boot_error'] = (q5 == "Yes")
+        col1, col2 = st.columns(2)
+        col1.button("⬅️ Back", on_click=prev_step)
+        col2.button("Next ➡️", on_click=next_step)
+
+# Question 6: Time Reset
+elif st.session_state.step == 6:
+    q6 = st.radio("Does the system time/date reset frequently?", ["Yes", "No"], index=None)
+    if q6:
+        st.session_state.answers['time_reset'] = (q6 == "Yes")
+        col1, col2 = st.columns(2)
+        col1.button("⬅️ Back", on_click=prev_step)
+        col2.button("Next ➡️", on_click=next_step)
+
+# Question 7: Test Mode
+elif st.session_state.step == 7:
+    q7 = st.radio("Are there tests running?", ["Yes", "No"], index=None)
+    if q7:
+        st.session_state.answers['test'] = q7
+        st.button("⬅️ Back", on_click=prev_step)
+        st.success("All symptoms recorded. You can now run the diagnosis.")
+
+# ======================================
+# Diagnosis Execution (Only on Last Page)
+# ======================================
+if st.session_state.step == 7:
+    if st.button("Start Diagnosis", use_container_width=True):
+        ans = st.session_state.answers
         env.reset()
 
-        # Assert user inputs as facts (Forward Chaining)
-        env.assert_string(f"(power-on {power.lower()})")
-        env.assert_string(f"(beeps {beeps.lower()})")
+        # Assert facts based on stored session answers
+        env.assert_string(f"(power-on {ans['power'].lower()})")
+        env.assert_string(f"(beeps {ans['beeps'].lower()})")
 
-        if screen == "Black/Blank":
+        if ans['screen'] == "Black/Blank":
             env.assert_string("(screen-black yes)")
         else:
             env.assert_string("(screen-black no)")
 
-        if shutdown:
-            env.assert_string("(sudden-shutdown yes)")
-        else:
-            env.assert_string("(sudden-shutdown no)")
-            
-        
+        env.assert_string(f"(sudden-shutdown {'yes' if ans['shutdown'] else 'no'})")
+        env.assert_string(f"(error-boot-device {'yes' if ans['boot_error'] else 'no'})")
+        env.assert_string(f"(time-reset {'yes' if ans['time_reset'] else 'no'})")
 
-        # new inputs
-        if test:
-            env.assert_string("(sudden-test yes)")
-        else:
-            env.assert_string("(sudden-test no)")
-
-        if boot_error:
-            env.assert_string("(error-boot-device yes)")
-        else:
-            env.assert_string("(error-boot-device no)")
-            
-        if time_reset:
-            env.assert_string("(time-reset yes)")
-        else:
-            env.assert_string("(time-reset no)")
-
-        # Run inference engine
         env.run()
+
+        # Display results (Same logic as before)
+        st.subheader("🛠️ Expert Recommendation")
+        diagnoses = [f['message'] for f in env.facts() if f.template.name == "diagnosis"]
+        
+        if diagnoses:
+            for msg in set(diagnoses):
+                st.success(f"**Recommended Action:** {msg}")
+        else:
+            notify_developer(ans)
 
         # ======================================
         # Reasoning Explanation
