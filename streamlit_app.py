@@ -173,16 +173,25 @@ if st.session_state.step == 7:
         # VALIDATION & EVALUATION
         # ======================================
         st.write("### 🔍 Validation Summary")
-        st.write(f"Inputs → Power: {power}, Beeps: {beeps}, Screen: {screen}, Shutdown: {shutdown}, Boot Error: {boot_error}, Time Reset: {time_reset}")
+        
+        # Pull the stored data from session state
+        ans = st.session_state.answers
+        
+        # Display the summary of what the user selected across all pages
+        st.write(f"Inputs → Power: {ans.get('power')}, Beeps: {ans.get('beeps')}, "
+                 f"Screen: {ans.get('screen')}, Shutdown: {ans.get('shutdown')}, "
+                 f"Boot Error: {ans.get('boot_error')}, Time Reset: {ans.get('time_reset')}")
 
         if not found:
+            # Send the complete dictionary to the developer notification function
             notify_developer({
-                "Power": power,
-                "Beeps": beeps,
-                "Screen": screen,
-                "Shutdown": shutdown,
-                "Boot Error": boot_error, 
-                "Time Reset": time_reset
+                "Power": ans.get('power'),
+                "Beeps": ans.get('beeps'),
+                "Screen": ans.get('screen'),
+                "Shutdown": ans.get('shutdown'),
+                "Boot Error": ans.get('boot_error'),
+                "Time Reset": ans.get('time_reset'),
+                "Test Mode": ans.get('test')
             })
 
 # ======================================
