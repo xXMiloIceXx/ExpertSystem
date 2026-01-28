@@ -63,6 +63,206 @@ def interpret_cf_level(cf_value):
     else:
         return "Definitely Not"
 
+def run_certainty_diagnosis(global_cf):
+    """Execute the CertaintyDiag-Bot reasoning engine"""
+    env.reset()
+    symptoms = st.session_state.symptoms
+    confidence = st.session_state.confidence_levels
+    
+    st.markdown("---")
+    st.subheader("🤖 CertaintyDiag-Bot Analysis Results")
+    
+    # Assert symptoms with proper CF calculations
+    
+    # Audio System Analysis
+    if 'volume_bar' in symptoms and 'sound_output' in symptoms:
+        vol_cf = confidence.get('audio', 0.7)
+        
+        # Rule A1: Missing Audio Driver
+        if "moving" in symptoms['volume_bar'] and "No sound" in symptoms['sound_output']:
+            env.assert_string(f"(symptom (name volume-bar-moving) (value yes) (cf {vol_cf}))")
+            env.assert_string(f"(symptom (name sound-output) (value none) (cf {vol_cf}))")
+        
+        # Rule A2: Faulty Speaker
+        elif "Distorted" in symptoms['sound_output']:
+            env.assert_string(f"(symptom (name sound-quality) (value distorted) (cf {vol_cf}))")
+    
+    # Thermal System Analysis
+    if 'temperature' in symptoms and 'performance' in symptoms:
+        temp_cf = confidence.get('thermal', 0.7)
+        
+        # Rule A4: Temperature Threshold
+        if "Very hot" in symptoms['temperature']:
+            env.assert_string(f"(symptom (name cpu-temp) (value high) (cf {temp_cf}))")
+        
+        # Rule A5: Imminent Overheating
+        elif "warmer rapidly" in symptoms['temperature']:
+            env.assert_string(f"(symptom (name temp-pattern) (value rising-rapidly) (cf {temp_cf}))")
+        
+        # Rule A6: PSU Aging with random shutdowns
+        if "Random shutdowns" in symptoms['performance'] and 'system_age' in symptoms:
+            age_cf = confidence.get('storage', 0.7)
+            if "Over 3 years" in symptoms['system_age']:
+                env.assert_string(f"(symptom (name random-shutdowns) (value yes) (cf {temp_cf}))")
+                env.assert_string(f"(symptom (name system-age) (value over-3-years) (cf {age_cf}))")
+    
+    # Power System Analysis
+    if 'power_startup' in symptoms and 'fan_behavior' in symptoms:
+        power_cf = confidence.get('power', 0.7)
+        
+        # Rule B3: Dead System
+        if "No response" in symptoms['power_startup'] and "No fan noise" in symptoms['fan_behavior']:
+            env.assert_string(f"(symptom (name power-lights) (value off) (cf {power_cf}))")
+            env.assert_string(f"(symptom (name fan-noise) (value none) (cf {power_cf}))")
+        
+        # Rule B4: Partial Power
+        elif "Lights but no boot" in symptoms['power_startup'] and "No fan noise" in symptoms['fan_behavior']:
+            env.assert_string(f"(symptom (name power-light) (value on) (cf {power_cf}))")
+            env.assert_string(f"(symptom (name fans-running) (value no) (cf {power_cf}))")
+    
+    # Display Analysis
+    if 'display' in symptoms and 'display_timing' in symptoms:
+        display_cf = confidence.get('display', 0.7)
+        
+        # Rule AB1: Monitor Physical Damage (Consensus)
+        if ("Lines, blocks, artifacts" in symptoms['display'] and 
+            "Right at power-on" in symptoms['display_timing']):
+            env.assert_string(f"(symptom (name power-status) (value on) (cf {display_cf}))")
+            env.assert_string(f"(symptom (name screen-artifacts) (value lines-blocks) (cf {display_cf}))")
+            env.assert_string(f"(symptom (name artifact-timing) (value at-boot) (cf {display_cf}))")
+    
+    # Storage Analysis
+    if 'boot_behavior' in symptoms:
+        storage_cf = confidence.get('storage', 0.7)
+        
+        # Rule B5: Critical Drive Failure
+        if "DISK BOOT FAILURE" in symptoms['boot_behavior']:
+            env.assert_string(f"(symptom (name boot-message) (value disk-boot-failure) (cf {storage_cf}))")
+        
+        # Rule A7: HDD Wear Pattern
+        elif "Random reboots" in symptoms['boot_behavior'] and 'system_age' in symptoms:
+            if "Over 3 years" in symptoms['system_age']:
+                env.assert_string(f"(symptom (name random-reboots) (value yes) (cf {storage_cf}))")
+                env.assert_string(f"(symptom (name device-age) (value old) (cf {storage_cf}))")
+    
+    # Hardware Detection Analysis
+    if 'device_detection' in symptoms:
+        detect_cf = confidence.get('detection', 0.7)
+        
+        if "Sound device not found" in symptoms['device_detection']:
+            env.assert_string(f"(symptom (name sound-card-status) (value not-detected) (cf {detect_cf}))")
+    
+    # Beep Analysis
+    if 'beep_pattern' in symptoms:
+        beep_cf = confidence.get('beeps', 0.7) * global_cf
+        
+        # Only process if CF is above Unknown threshold
+        if beep_cf > 0.2:
+            beep_mapping = {
+                "One short beep (normal)": "very-short",
+                "Multiple short beeps": "short",
+                "Long beeps": "long",
+                "Continuous beeping": "continuous"
+            }
+            
+            for pattern, value in beep_mapping.items():
+                if pattern in symptoms['beep_pattern']:
+                    env.assert_string(f"(symptom (name beep-duration) (value {value}) (cf {beep_cf}))")
+    
+    # Run the inference engine
+    env.run()
+    
+    # ======================================
+    # CertaintyDiag-Bot Results Display
+    # ======================================
+    
+    diagnoses = []
+    for fact in env.facts():
+        if fact.template.name == "diagnosis":
+            diagnoses.append({
+                'fault': fact['fault'],
+                'solution': fact['solution'],
+                'category': fact['category'], 
+                'cf': float(fact['cf'])
+            })
+    
+    if diagnoses:
+        # Sort by certainty factor
+        diagnoses.sort(key=lambda x: x['cf'], reverse=True)
+        
+        st.success("🎯 **Diagnostic Assessment Complete**")
+        
+        for i, diag in enumerate(diagnoses):
+            cf_interpretation = interpret_cf_level(diag['cf'])
+            
+            # Color coding based on certainty
+            if diag['cf'] >= 0.8:
+                st.success(f"**{cf_interpretation} ({diag['cf']:.2f})**")
+            elif diag['cf'] >= 0.6:
+                st.info(f"**{cf_interpretation} ({diag['cf']:.2f})**")
+            elif diag['cf'] >= 0.3:
+                st.warning(f"**{cf_interpretation} ({diag['cf']:.2f})**")
+            else:
+                st.error(f"**{cf_interpretation} ({diag['cf']:.2f})**")
+            
+            # Diagnosis details
+            st.write(f"**Suspected Fault:** {diag['fault']}")
+            st.write(f"**Evidence Used:** {list(symptoms.keys())}")
+            st.write(f"**Reasoning:** Based on hybrid knowledge base analysis with certainty weighting")
+            st.write(f"**Recommended Action:** {diag['solution']}")
+            st.write(f"**Category:** {diag['category']}")
+            
+            st.markdown("---")
+        
+        # Cross-check recommendations
+        if diagnoses[0]['cf'] < 0.6:
+            st.warning("⚠️ **Certainty Level Below Threshold**")
+            st.write("The diagnosis confidence is in the 'Maybe' range. Consider:")
+            st.write("• Gathering more specific evidence")
+            st.write("• Cross-checking symptoms with alternative approaches")
+            st.write("• Professional hardware inspection")
+        
+    else:
+        st.warning("⚠️ **No Diagnosis Found**")
+        st.write("The symptom pattern doesn't match known rules in the knowledge base.")
+        st.write("**Possible reasons:**")
+        st.write("• Symptoms are in the 'Unknown' range (CF -0.2 to 0.2)")
+        st.write("• Novel hardware issue not covered in current rules")
+        st.write("• Multiple conflicting symptoms")
+        
+        st.info("**Recommendation:** Consult professional hardware technician for manual diagnosis.")
+    
+    # Evidence Summary
+    st.markdown("### 🔍 Evidence Summary")
+    st.write("**User Symptoms & Confidence Levels:**")
+    for symptom, value in symptoms.items():
+        cf = confidence.get(symptom.split('_')[0], 0.7)
+        cf_text = interpret_cf_level(cf)
+        st.write(f"• {symptom.replace('_', ' ').title()}: {value} (*{cf_text}: {cf:.2f}*)")
+    
+    st.write(f"**Global Confidence Modifier:** {global_cf:.2f} ({interpret_cf_level(global_cf)})")
+    
+    # ======================================
+    # External Links & Actions
+    # ======================================
+    st.markdown("---")
+    st.subheader("📚 Additional Resources")
+    
+    external_url = "https://docs.google.com/forms/d/e/1FAIpQLScGm5kkIxK88AZM_ElaVZDwIUqQgCG_kP7ficPKa9H3T6QAgQ/viewform?usp=publish-editor"
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📝 Provide Feedback", use_container_width=True):
+            st.markdown(f'<meta http-equiv="refresh" content="0; url={external_url}">', unsafe_allow_html=True)
+    with col2:
+        if st.button("🔄 New Diagnosis", on_click=restart_diagnosis, use_container_width=True):
+            st.rerun()
+
+def restart_diagnosis():
+    st.session_state.step = 1
+    st.session_state.symptoms = {}
+    st.session_state.confidence_levels = {}
+
 # ======================================
 # User Interface
 # ======================================
@@ -111,11 +311,6 @@ def next_step():
 
 def prev_step():
     st.session_state.step -= 1
-
-def restart_diagnosis():
-    st.session_state.step = 1
-    st.session_state.symptoms = {}
-    st.session_state.confidence_levels = {}
 
 # ======================================
 # Evidence Gathering with CF Sensing
