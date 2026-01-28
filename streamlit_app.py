@@ -145,7 +145,9 @@ if st.session_state.step == 7:
 
         env.run()
 
-        # Display results (Same logic as before)
+        # ======================================
+        # Diagnosis Output
+        # ======================================
         st.subheader("🛠️ Expert Recommendation")
         diagnoses = [f['message'] for f in env.facts() if f.template.name == "diagnosis"]
         
@@ -164,38 +166,8 @@ if st.session_state.step == 7:
             "to derive possible hardware fault diagnoses."
         )
 
-        # ======================================
-        # Diagnosis Output
-        # ======================================
-        st.subheader("🛠️ Expert Recommendation")
-
-        # found = False
-        # for fact in env.facts():
-        #     if fact.template.name == "diagnosis":
-        #         st.success(f"**Recommended Action:** {fact['message']}")
-        #         break
         
-        diagnoses = []
-        found_specific_diagnosis = False # New flag
         
-        for fact in env.facts():
-            if fact.template.name == "diagnosis":
-                msg = fact['message']
-                # Check if it's a real diagnosis or just the fallback message
-                if msg != "This case will be reviewed to improve the knowledge base.":
-                    found_specific_diagnosis = True
-                diagnoses.append(msg)
-        
-        if diagnoses:
-            for msg in diagnoses:
-                # If it's the fallback, use a neutral info box instead of a success box
-                if msg == "This case will be reviewed to improve the knowledge base.":
-                    st.info(f"ℹ️ {msg}")
-                else:
-                    st.success(f"**Recommended Action:** {msg}")
-        
-        # Use our new flag to trigger the developer notification
-        found = found_specific_diagnosis
 
         # ======================================
         # VALIDATION & EVALUATION
