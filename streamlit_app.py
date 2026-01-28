@@ -179,8 +179,16 @@ elif st.session_state.step == 7:
 # ======================================
 # System Reset
 # ======================================
-if st.button("Reset System"):
+if st.button("Reset System", use_container_width=True):
+    # Clear the wizard progress
+    st.session_state.step = 1
+    # Clear all stored answers
+    st.session_state.answers = {}
+    
+    # Optional: Clear any old individual session keys if they exist
     for key in ["power", "beeps", "screen", "shutdown"]:
         if key in st.session_state:
             del st.session_state[key]
+            
+    # Refresh the app to show Page 1
     st.rerun()
