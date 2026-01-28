@@ -46,15 +46,15 @@ st.subheader("Select Observed Symptoms")
 col1, col2 = st.columns(2)
 
 with col1:
-    power = st.checkbox("Does the PC power on?")
-    beeps = st.checkbox("Are there diagnostic beeps?")
+    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
+    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
     
     # new question added
-    test = st.checkbox("Are there test?")
+    test = st.radio("Are there test?", ["Yes", "No"], index=None)
     boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
 
 with col2:
-    screen = st.checkbox("Is there any display on the screen?")
+    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
     shutdown = st.checkbox("PC shuts down unexpectedly?")
     
     # New Question 2
@@ -65,29 +65,47 @@ with col2:
 # ======================================
 if st.button("Start Diagnosis", use_container_width=True):
 
-    # Validation: Check if at least one checkbox is selected
-    symptoms_selected = [power, beeps, test, boot_error, screen, shutdown, time_reset]
-    
     # Input completeness validation
-    if not any(symptoms_selected):
-        st.warning("⚠️ Please select at least one symptom to proceed with the diagnosis.")
-        
+    if power is None or beeps is None or screen is None or test is None:
+        st.warning("Please answer all questions before running the diagnosis.")
+    
     elif not RULES_LOADED:
         st.error("System error: Rule base not loaded.")
 
     else:
         env.reset()
 
-        # Assert facts based on checkbox states (Forward Chaining)
-        env.assert_string(f"(power-on {'yes' if power else 'no'})")
-        env.assert_string(f"(beeps {'yes' if beeps else 'no'})")
-        env.assert_string(f"(test {'yes' if test else 'no'})")
-        env.assert_string(f"(screen-black {'no' if screen else 'yes'})")
-        env.assert_string(f"(sudden-shutdown {'yes' if shutdown else 'no'})")
-        env.assert_string(f"(error-boot-device {'yes' if boot_error else 'no'})")
-        env.assert_string(f"(time-reset {'yes' if time_reset else 'no'})")
+        # Assert user inputs as facts (Forward Chaining)
+        env.assert_string(f"(power-on {power.lower()})")
+        env.assert_string(f"(beeps {beeps.lower()})")
 
-        env.run()
+        if screen == "Black/Blank":
+            env.assert_string("(screen-black yes)")
+        else:
+            env.assert_string("(screen-black no)")
+
+        if shutdown:
+            env.assert_string("(sudden-shutdown yes)")
+        else:
+            env.assert_string("(sudden-shutdown no)")
+            
+        
+
+        # new inputs
+        if test:
+            env.assert_string("(sudden-test yes)")
+        else:
+            env.assert_string("(sudden-test no)")
+
+        if boot_error:
+            env.assert_string("(error-boot-device yes)")
+        else:
+            env.assert_string("(error-boot-device no)")
+            
+        if time_reset:
+            env.assert_string("(time-reset yes)")
+        else:
+            env.assert_string("(time-reset no)")
 
         # Run inference engine
         env.run()
@@ -106,10 +124,15 @@ if st.button("Start Diagnosis", use_container_width=True):
         # ======================================
         st.subheader("🛠️ Expert Recommendation")
 
-        diagnoses = []
-        found_specific_diagnosis = False 
+        # found = False
+        # for fact in env.facts():
+        #     if fact.template.name == "diagnosis":
+        #         st.success(f"**Recommended Action:** {fact['message']}")
+        #         break
         
-        # 1. Collect all facts from the engine
+        diagnoses = []
+        found_specific_diagnosis = False # New flag
+        
         for fact in env.facts():
             if fact.template.name == "diagnosis":
                 msg = fact['message']
@@ -118,15 +141,15 @@ if st.button("Start Diagnosis", use_container_width=True):
                     found_specific_diagnosis = True
                 diagnoses.append(msg)
         
-        # 2. Display the results to the user
         if diagnoses:
             for msg in diagnoses:
+                # If it's the fallback, use a neutral info box instead of a success box
                 if msg == "This case will be reviewed to improve the knowledge base.":
                     st.info(f"ℹ️ {msg}")
                 else:
                     st.success(f"**Recommended Action:** {msg}")
         
-        # 3. Update the 'found' flag for the developer notification logic
+        # Use our new flag to trigger the developer notification
         found = found_specific_diagnosis
 
         # ======================================
