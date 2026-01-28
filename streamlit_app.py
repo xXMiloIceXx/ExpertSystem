@@ -39,26 +39,65 @@ st.info(
 )
 
 # ======================================
-# Symptom Input Section
+# Page State Management
 # ======================================
-st.subheader("Select Observed Symptoms")
+if 'page' not in st.session_state:
+    st.session_state.page = 1
+if 'answers' not in st.session_state:
+    st.session_state.answers = {}
 
-col1, col2 = st.columns(2)
+def next_page():
+    st.session_state.page += 1
 
-with col1:
-    power = st.radio("Does the PC power on?", ["Yes", "No"], index=None)
-    beeps = st.radio("Are there diagnostic beeps?", ["Yes", "No"], index=None)
-    
-    # new question added
-    test = st.radio("Are there test?", ["Yes", "No"], index=None)
-    boot_error = st.checkbox("Do you see a 'No Bootable Device' error?")
+def restart():
+    st.session_state.page = 1
+    st.session_state.answers = {}
 
-with col2:
-    screen = st.radio("Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
-    shutdown = st.checkbox("PC shuts down unexpectedly?")
-    
-    # New Question 2
-    time_reset = st.checkbox("Does the system time/date reset frequently?")
+# ======================================
+# Multi-Page Question Flow
+# ======================================
+st.subheader(f"Step {st.session_state.page} of 7")
+
+if st.session_state.page == 1:
+    q1 = st.radio("1. Does the PC power on?", ["Yes", "No"], index=None)
+    if q1:
+        st.session_state.answers['power'] = q1
+        st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 2:
+    q2 = st.radio("2. Are there diagnostic beeps?", ["Yes", "No"], index=None)
+    if q2:
+        st.session_state.answers['beeps'] = q2
+        st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 3:
+    q3 = st.radio("3. Is there any display on the screen?", ["Visible", "Black/Blank"], index=None)
+    if q3:
+        st.session_state.answers['screen'] = q3
+        st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 4:
+    q4 = st.checkbox("4. PC shuts down unexpectedly?")
+    st.session_state.answers['shutdown'] = q4
+    st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 5:
+    q5 = st.checkbox("5. Do you see a 'No Bootable Device' error?")
+    st.session_state.answers['boot_error'] = q5
+    st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 6:
+    q6 = st.checkbox("6. Does the system time/date reset frequently?")
+    st.session_state.answers['time_reset'] = q6
+    st.button("Next", on_click=next_page)
+
+elif st.session_state.page == 7:
+    q7 = st.radio("7. Are there test?", ["Yes", "No"], index=None)
+    if q7:
+        st.session_state.answers['test'] = q7
+        # Final Step: Show the Start Diagnosis button
+        st.markdown("---")
+        st.success("All symptoms recorded. Ready to diagnose.")
 
 # ======================================
 # Diagnosis Execution
