@@ -1,2 +1,5 @@
-clipspy
 streamlit
+clipspy
+spacy
+pandas
+numpy
