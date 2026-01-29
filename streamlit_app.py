@@ -674,18 +674,18 @@ elif st.session_state.step == 2:
 
     # Q1: Volume Bar (Source A)
     vol_mapping = {
-        "Green bar is moving":           ("moving", 1.0),
-        "Bar moves irregularly/randomly": ("irregular", 1.0),
-        "Bar is frozen/gray":            ("frozen", 1.0),
+        "Green bar is moving":           ("bar-moving", 1.0), # Changed from 'moving'
+        "Bar moves irregularly/randomly": ("bar-irregular", 1.0),
+        "Bar is frozen/gray":            ("bar-frozen", 1.0),
         "Not sure":                      ("unknown", 0.0)
     }
     ans_vol = st.radio("Check Volume Mixer. Is the bar moving?", list(vol_mapping.keys()))
     
     # Q2: Sound Output (Source A)
     sound_mapping = {
-        "No sound at all":               ("none", 1.0),
-        "Scratchy, distorted, rattling": ("distorted", 1.0),
-        "Sound is normal":               ("normal", 1.0)
+        "No sound at all":               ("sound-none", 1.0), # Changed from 'none'
+        "Scratchy, distorted, rattling": ("sound-distorted", 1.0),
+        "Sound is normal":               ("sound-normal", 1.0)
     }
     ans_sound = st.radio("What do you hear?", list(sound_mapping.keys()))
 
@@ -717,17 +717,17 @@ elif st.session_state.step == 3:
     
     # Q1: Temperature (Source A)
     temp_mapping = {
-        "Above 85°C (Measured)":         ("above-85", 1.0),
-        "Rising rapidly/Unusual":        ("rising-rapidly", 0.8),
-        "Hot to the touch":              ("above-85", 0.6), # Lower confidence
-        "Normal":                        ("normal", 1.0),
+        "Above 85°C (Measured)":         ("temp-above-85", 1.0),
+        "Rising rapidly/Unusual":        ("temp-rising-rapidly", 0.8),
+        "Hot to the touch":              ("temp-above-85", 0.6), 
+        "Normal":                        ("temp-normal", 1.0),
         "Not sure":                      ("unknown", 0.0)
     }
     ans_temp = st.radio("CPU Temperature Status:", list(temp_mapping.keys()))
 
     # Q2: Boot Warning (Source B)
     boot_warn_mapping = {
-        "Yes, 'CPU Overheat' warning":   ("cpu-overheat", 1.0),
+        "Yes, 'CPU Overheat' warning":   ("warn-cpu-overheat", 1.0), # Changed from 'cpu-overheat'
         "No warning":                    ("none", 1.0)
     }
     ans_warn = st.radio("Did you see a CPU Overheat warning at boot?", list(boot_warn_mapping.keys()))
@@ -751,16 +751,16 @@ elif st.session_state.step == 4:
 
     # Q1: Lights
     light_mapping = {
-        "Lights are ON":       ("on", 1.0),
-        "No lights (OFF)":     ("off", 1.0),
+        "Lights are ON":       ("light-on", 1.0), # Added 'light-' prefix
+        "No lights (OFF)":     ("light-off", 1.0),
         "Not sure":            ("unknown", 0.0)
     }
     ans_light = st.radio("Power LED Status:", list(light_mapping.keys()))
     
     # Q2: Fans
     fan_mapping = {
-        "Silent (No noise)":   ("silent", 1.0),
-        "Spinning / Noisy":    ("spinning", 1.0),
+        "Silent (No noise)":   ("fan-silent", 1.0), # Added 'fan-' prefix
+        "Spinning / Noisy":    ("fan-spinning", 1.0),
         "Not sure":            ("unknown", 0.0)
     }
     ans_fan = st.radio("Fan Status:", list(fan_mapping.keys()))
@@ -961,6 +961,9 @@ elif st.session_state.step == 6:
         
         with tab2:
             st.subheader("Inference Chain Analysis")
+            
+            # === RBR Inference Chain ===
+            st.markdown("#### 🔧 Rule-Based Reasoning (RBR)")
             if rbr_result:
                 triggered_symptoms = get_triggered_symptoms(env)
                 if triggered_symptoms:
@@ -980,6 +983,46 @@ elif st.session_state.step == 6:
                     st.caption("No explicit symptom triggers recorded")
             else:
                 st.info("No rule-based inference was performed.")
+            
+            # === CBR Inference Chain ===
+            st.markdown("---")
+            st.markdown("#### 🧠 Case-Based Reasoning (CBR)")
+            if cbr_result and cbr_score > 0:
+                st.write("**Feature Matching Process**:")
+                
+                # Show user's symptom vector
+                with st.expander("📋 Your Symptom Profile", expanded=True):
+                    user_features_list = sorted(list(user_features))
+                    if user_features_list:
+                        for feat in user_features_list:
+                            feature_type = feat.split(":")[0] if ":" in feat else feat
+                            weight = FEATURE_WEIGHTS.get(feature_type, 1.0)
+                            st.markdown(f"- `{feat}` — Weight: **{weight}**")
+                        st.caption(f"Total Features: {len(user_features_list)}")
+                    else:
+                        st.warning("No features extracted")
+                
+                # Show matched features with the best case
+                if cbr_result.get('matched_features'):
+                    with st.expander("✅ Matched Features (Intersection)", expanded=True):
+                        matched = cbr_result['matched_features']
+                        intersection_weight = 0.0
+                        for feat in matched:
+                            feature_type = feat.split(":")[0] if ":" in feat else feat
+                            weight = FEATURE_WEIGHTS.get(feature_type, 1.0)
+                            intersection_weight += weight
+                            st.markdown(f"- `{feat}` — Weight: **{weight}**")
+                        st.success(f"**Intersection Weight**: {intersection_weight:.2f}")
+                
+                # Show similarity calculation
+                with st.expander("📊 Weighted Jaccard Calculation"):
+                    st.latex(r"\text{Similarity} = \frac{\text{Intersection Weight}}{\text{Union Weight}} \times 100")
+                    st.write(f"**Final Score**: {cbr_score:.1f}%")
+                    st.caption("Higher weight features contribute more to similarity")
+                
+                st.caption("ℹ️ CBR uses Weighted Jaccard algorithm for case retrieval")
+            else:
+                st.info("No case-based reasoning match found.")
         
         with tab3:
             st.subheader("Historical Case Memory")
